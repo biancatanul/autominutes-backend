@@ -1,48 +1,37 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
-import { Meeting, ProcessingStatus } from './entities/meeting.entity';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Meeting, MeetingDocument } from './entities/meeting.entity';
 
 @Injectable()
 export class MeetingsService {
-  private meetings: Meeting[] = []; // lives in RAM; resets on restart
+  constructor(@InjectModel(Meeting.name) private meetingModel: Model<MeetingDocument>) {}
 
-  create(dto: CreateMeetingDto): Meeting {
-    const now = new Date();
-    const meeting: Meeting = {
-      id: randomUUID(),
-      title: dto.title,
-      datetime: new Date(dto.datetime),
-      description: dto.description,
-      processingStatus: ProcessingStatus.IDLE,
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.meetings.push(meeting);
-    return meeting;
+  async create(dto: CreateMeetingDto) {
+    return this.meetingModel.create(dto);
   }
 
-  findAll(): Meeting[] {
-    return this.meetings;
+  async findAll() {
+    return this.meetingModel.find();
   }
 
-  findOne(id: string): Meeting {
-    const meeting = this.meetings.find((m) => m.id === id);
+  async findOne(id: string) {
+    const meeting = await this.meetingModel.findById(id);
     if (!meeting) throw new NotFoundException(`Meeting ${id} not found`);
     return meeting;
   }
 
-  update(id: string, dto: UpdateMeetingDto): Meeting {
-    const meeting = this.findOne(id);
-    Object.assign(meeting, dto, { updatedAt: new Date() });
+  async update(id: string, dto: UpdateMeetingDto) {
+    const meeting = await this.meetingModel.findByIdAndUpdate(id, dto, { new: true });
+    if (!meeting) throw new NotFoundException(`Meeting ${id} not found`);
     return meeting;
   }
 
-  remove(id: string): Meeting {
-    const index = this.meetings.findIndex((m) => m.id === id);
-    if (index === -1) throw new NotFoundException(`Meeting ${id} not found`);
-    const [removed] = this.meetings.splice(index, 1);
-    return removed;
+  async remove(id: string) {
+    const meeting = await this.meetingModel.findByIdAndDelete(id);
+    if (!meeting) throw new NotFoundException(`Meeting ${id} not found`);
+    return meeting;
   }
 }

@@ -1,3 +1,6 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
+
 export enum ProcessingStatus {
   IDLE = 'idle',
   PROCESSING = 'processing',
@@ -5,12 +8,21 @@ export enum ProcessingStatus {
   FAILED = 'failed',
 }
 
+export type MeetingDocument = HydratedDocument<Meeting>;
+
+@Schema({ timestamps: true })
 export class Meeting {
-  id: string;
+  @Prop({ required: true })
   title: string;
+
+  @Prop({ required: true })
   datetime: Date;
+
+  @Prop()
   description?: string;
+
+  @Prop({ enum: ProcessingStatus, default: ProcessingStatus.IDLE })
   processingStatus: ProcessingStatus;
-  createdAt: Date;
-  updatedAt: Date;
 }
+
+export const MeetingSchema = SchemaFactory.createForClass(Meeting);
