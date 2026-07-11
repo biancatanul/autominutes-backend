@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAttendeeDto {
   @IsString()
@@ -13,7 +13,7 @@ export class CreateAttendeeDto {
   @IsNotEmpty()
   role: string;
 
-  @IsString()
+  @IsMongoId()
   @IsNotEmpty()
   meetingId: string;
 }
