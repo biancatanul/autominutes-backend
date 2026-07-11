@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppService } from './app.service';
 import { UsersModule } from '@users/users.module';
 import { MeetingsModule } from '../meetings/meetings.module';
@@ -11,6 +12,13 @@ import { ActionItemsModule } from '../action-items/action-items.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URI'),
+      }),
+      inject: [ConfigService],
     }),
     UsersModule,
     MeetingsModule,
