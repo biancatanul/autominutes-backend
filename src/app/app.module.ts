@@ -7,6 +7,8 @@ import { UsersModule } from '@users/users.module';
 import { MeetingsModule } from '../meetings/meetings.module';
 import { AttendeesModule } from '../attendees/attendees.module';
 import { ActionItemsModule } from '../action-items/action-items.module';
+import { AiResultsModule } from '../ai-results/ai-results.module';
+import { ProcessingModule } from '../processing/processing.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { ActionItemsModule } from '../action-items/action-items.module';
     MeetingsModule,
     AttendeesModule,
     ActionItemsModule,
+    AiResultsModule,
+    ProcessingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
