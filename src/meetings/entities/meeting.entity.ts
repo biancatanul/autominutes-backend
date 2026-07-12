@@ -21,6 +21,9 @@ export class Meeting {
   @Prop()
   description?: string;
 
+  @Prop()
+  transcript?: string;
+
   @Prop({ enum: ProcessingStatus, default: ProcessingStatus.IDLE })
   processingStatus: ProcessingStatus;
 }

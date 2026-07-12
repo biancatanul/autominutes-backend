@@ -34,4 +34,17 @@ export class MeetingsService {
     if (!meeting) throw new NotFoundException(`Meeting ${id} not found`);
     return meeting;
   }
+
+  async setTranscript(id: string, text: string): Promise<Meeting> {
+    const meeting = await this.meetingModel
+      .findByIdAndUpdate(id, { transcript: text }, { new: true })
+      .exec();
+    if (!meeting) throw new NotFoundException(`Meeting ${id} not found`);
+    return meeting;
+  }
+
+  async getTranscript(id: string): Promise<{ transcript: string | null }> {
+    const meeting = await this.findOne(id);
+    return { transcript: meeting.transcript ?? null };
+  }
 }

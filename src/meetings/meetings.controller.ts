@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { MeetingsService } from './meetings.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
+import { UploadTranscriptDto } from './dto/upload-transcript.dto';
 
 @ApiTags('meetings')
 @Controller('meetings')
@@ -32,5 +33,15 @@ export class MeetingsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.meetingsService.remove(id);
+  }
+
+  @Put(':id/transcript')
+  setTranscript(@Param('id') id: string, @Body() dto: UploadTranscriptDto) {
+    return this.meetingsService.setTranscript(id, dto.text);
+  }
+
+  @Get(':id/transcript')
+  getTranscript(@Param('id') id: string) {
+    return this.meetingsService.getTranscript(id);
   }
 }
