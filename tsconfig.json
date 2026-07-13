@@ -25,7 +25,6 @@
     "baseUrl": "./",
     "paths": {
       "@app/*": ["src/app/*"],
-      "@users/*": ["src/users/*"],
       "@common/*": ["src/common/*"],
       "@config/*": ["src/config/*"]
     }

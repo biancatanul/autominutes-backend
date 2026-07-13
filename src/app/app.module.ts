@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppService } from './app.service';
-import { UsersModule } from '@users/users.module';
 import { MeetingsModule } from '../meetings/meetings.module';
 import { AttendeesModule } from '../attendees/attendees.module';
 import { ActionItemsModule } from '../action-items/action-items.module';
@@ -22,7 +21,6 @@ import { ProcessingModule } from '../processing/processing.module';
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
     MeetingsModule,
     AttendeesModule,
     ActionItemsModule,
