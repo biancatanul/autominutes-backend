@@ -1,3 +1,4 @@
+import * as chrono from 'chrono-node';
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -56,7 +57,7 @@ export class ProcessingService {
               .map((a) => ({
                 description: a.description,
                 assignee: a.assignee,
-                deadline: this.parseDeadline(a.deadline),
+                deadline: this.parseDeadline(a.deadline, meeting.datetime),
                 status: this.mapStatus(a.status),
                 meetingId: objId,
               })),
@@ -75,10 +76,14 @@ export class ProcessingService {
     }
   }
 
-  private parseDeadline(value?: string): Date | undefined {
+  private parseDeadline(value: string | undefined, referenceDate: Date): Date | undefined {
     if (!value) return undefined;
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? undefined : d; // Wednesday = undefined; only clear dates like 2026-07-15 stored for now; needs improvement
+
+    const native = new Date(value);
+    if (!isNaN(native.getTime())) return native; // ISO style dates are parsed correctly by Date constructor
+
+    const parsed = chrono.parseDate(value, referenceDate, { forwardDate: true }); // fallback to chrono-node for relative dates like "next Monday" or "in 3 days"
+    return parsed ?? undefined;
   }
 
   private mapStatus(status?: string): ActionItemStatus {

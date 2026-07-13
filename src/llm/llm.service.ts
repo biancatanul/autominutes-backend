@@ -18,7 +18,12 @@ export class LlmService {
       'You analyze meeting transcripts. Respond ONLY with a JSON object of this shape: ' +
       '{ "summary": string, "discussionPoints": string[], "actionItems": ' +
       '[{ "description": string, "assignee": string|null, "deadline": string|null, ' +
-      '"status": "OPEN"|"IN_PROGRESS"|"DONE" }] }. No text outside the JSON.';
+      '"status": "OPEN"|"IN_PROGRESS"|"DONE" }] }. No text outside the JSON. ' +
+      'For the deadline field: if the transcript states an explicit calendar date ' +
+      '(e.g. "2026-07-16" or "July 16"), output it as YYYY-MM-DD. If the transcript ' +
+      'uses a relative or relative day reference (e.g. "wednesday", "next friday", ' +
+      '"in 3 days"), output that phrase exactly as said, in lowercase, do not calculate ' +
+      'or resolve it yourself. If no deadline is mentioned, use null.';
 
     let response: Response;
     try {
