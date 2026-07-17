@@ -17,6 +17,7 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder().setTitle('AutoMinutes API').setVersion('1.0').build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
