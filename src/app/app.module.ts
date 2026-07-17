@@ -9,6 +9,7 @@ import { ActionItemsModule } from '../action-items/action-items.module';
 import { AiResultsModule } from '../ai-results/ai-results.module';
 import { ProcessingModule } from '../processing/processing.module';
 import { UsersModule } from '../users/users.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UsersModule } from '../users/users.module';
     AiResultsModule,
     ProcessingModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
