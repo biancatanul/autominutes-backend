@@ -11,8 +11,8 @@ export class Attendee {
   @Prop()
   email?: string;
 
-  @Prop({ required: true })
-  role: string;
+  @Prop()
+  role?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Meeting', required: true })
   meetingId: Types.ObjectId; // references the meeting this attendee belongs to

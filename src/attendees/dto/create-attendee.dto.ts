@@ -10,7 +10,7 @@ export class CreateAttendeeDto {
   email?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   role: string;
 
   @IsMongoId()
