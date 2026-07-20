@@ -5,6 +5,13 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Meeting, MeetingDocument } from './entities/meeting.entity';
 
+export type PaginatedMeetings = {
+  data: Meeting[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
 @Injectable()
 export class MeetingsService {
   constructor(@InjectModel(Meeting.name) private meetingModel: Model<MeetingDocument>) {}
@@ -13,8 +20,17 @@ export class MeetingsService {
     return this.meetingModel.create(dto);
   }
 
-  async findAll() {
-    return this.meetingModel.find();
+  async findAll(page = 1, limit = 10): Promise<PaginatedMeetings> {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+    const skip = (safePage - 1) * safeLimit;
+
+    const [data, total] = await Promise.all([
+      this.meetingModel.find().sort({ datetime: -1 }).skip(skip).limit(safeLimit).exec(),
+      this.meetingModel.countDocuments(),
+    ]);
+
+    return { data, total, page: safePage, limit: safeLimit };
   }
 
   async findOne(id: string) {
