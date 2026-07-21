@@ -13,8 +13,20 @@ export class MeetingsService {
     return this.meetingModel.create(dto);
   }
 
-  async findAll() {
-    return this.meetingModel.find();
+  async findAll(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.meetingModel.find().skip(skip).limit(limit),
+      this.meetingModel.countDocuments(),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: string) {

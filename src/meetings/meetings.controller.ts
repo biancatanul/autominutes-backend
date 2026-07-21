@@ -4,6 +4,7 @@ import { MeetingsService } from './meetings.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { UploadTranscriptDto } from './dto/upload-transcript.dto';
+import { Query } from '@nestjs/common';
 
 @ApiTags('meetings')
 @Controller('meetings')
@@ -16,8 +17,8 @@ export class MeetingsController {
   }
 
   @Get()
-  findAll() {
-    return this.meetingsService.findAll();
+  findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.meetingsService.findAll(+page, +limit);
   }
 
   @Get(':id')
