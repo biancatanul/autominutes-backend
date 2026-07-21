@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, Types, SchemaTypes } from 'mongoose';
 
 export type AttendeeDocument = HydratedDocument<Attendee>;
 
@@ -11,10 +11,10 @@ export class Attendee {
   @Prop()
   email?: string;
 
-  @Prop({ required: true })
-  role: string;
+  @Prop()
+  role?: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Meeting', required: true })
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'Meeting', required: true })
   meetingId: Types.ObjectId; // references the meeting this attendee belongs to
 }
 

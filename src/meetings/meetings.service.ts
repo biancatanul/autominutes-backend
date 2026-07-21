@@ -5,6 +5,13 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Meeting, MeetingDocument } from './entities/meeting.entity';
 
+export type PaginatedMeetings = {
+  data: Meeting[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
 @Injectable()
 export class MeetingsService {
   constructor(@InjectModel(Meeting.name) private meetingModel: Model<MeetingDocument>) {}
