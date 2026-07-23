@@ -50,30 +50,108 @@ export class ProcessingService {
         version,
       });
 
-      const createdItems = ai.actionItems.length
-        ? await this.actionItemModel.insertMany(
-            ai.actionItems
-              .filter((a) => a.description && a.description.trim() !== '')
-              .map((a) => ({
-                description: a.description,
-                assignee: a.assignee,
-                deadline: this.parseDeadline(a.deadline, meeting.datetime),
-                status: this.mapStatus(a.status),
-                meetingId: objId,
-              })),
-          )
-        : [];
+      const MATCH_THRESHOLD = 0.6;
+
+      const existingItems = await this.actionItemModel.find({ meetingId: objId }).exec();
+      const existingEntries = existingItems.map((item) => ({
+        item,
+        tokens: this.tokenize(item.description),
+      }));
+      const claimed = new Set<string>();
+
+      const toInsert: Partial<ActionItem>[] = [];
+      const updated: ActionItemDocument[] = [];
+
+      for (const raw of ai.actionItems) {
+        if (!raw.description || raw.description.trim() === '') continue;
+
+        const tokens = this.tokenize(raw.description);
+
+        let best: { item: ActionItemDocument; score: number } | undefined;
+        for (const entry of existingEntries) {
+          if (claimed.has(String(entry.item._id))) continue;
+          const score = this.similarity(tokens, entry.tokens);
+          if (score >= MATCH_THRESHOLD && (!best || score > best.score)) {
+            best = { item: entry.item, score };
+          }
+        }
+
+        const deadline = this.parseDeadline(raw.deadline, meeting.datetime);
+
+        if (best) {
+          claimed.add(String(best.item._id));
+          let changed = false;
+          if (!best.item.assignee && raw.assignee) {
+            best.item.assignee = raw.assignee;
+            changed = true;
+          }
+          if (!best.item.deadline && deadline) {
+            best.item.deadline = deadline;
+            changed = true;
+          }
+          if (changed) await best.item.save();
+          updated.push(best.item);
+        } else {
+          toInsert.push({
+            description: raw.description,
+            assignee: raw.assignee,
+            deadline,
+            status: this.mapStatus(raw.status),
+            meetingId: objId,
+          });
+        }
+      }
+
+      const createdItems = toInsert.length ? await this.actionItemModel.insertMany(toInsert) : [];
 
       meeting.processingStatus = ProcessingStatus.COMPLETED;
       await meeting.save();
 
-      return { meetingId, status: meeting.processingStatus, aiResult, actionItems: createdItems };
+      return {
+        meetingId,
+        status: meeting.processingStatus,
+        aiResult,
+        actionItems: [...updated, ...createdItems],
+      };
     } catch (err) {
       meeting.processingStatus = ProcessingStatus.FAILED;
       await meeting.save();
       this.logger.error(`Processing failed for meeting ${meetingId}`, err as Error);
       throw err;
     }
+  }
+
+  private static readonly STOPWORDS = new Set([
+    'a',
+    'an',
+    'the',
+    'to',
+    'by',
+    'for',
+    'in',
+    'on',
+    'at',
+    'of',
+    'and',
+    'with',
+  ]);
+
+  private tokenize(description: string): Set<string> {
+    return new Set(
+      description
+        .trim()
+        .toLowerCase()
+        .replace(/[.!?]+$/, '')
+        .split(/\s+/)
+        .filter((word) => word.length > 0 && !ProcessingService.STOPWORDS.has(word)),
+    );
+  }
+
+  private similarity(a: Set<string>, b: Set<string>): number {
+    let intersection = 0;
+    for (const word of a) if (b.has(word)) intersection++;
+    const smaller = Math.min(a.size, b.size);
+    return smaller === 0 ? 0 : intersection / smaller;
   }
 
   private parseDeadline(value: string | undefined, referenceDate: Date): Date | undefined {
