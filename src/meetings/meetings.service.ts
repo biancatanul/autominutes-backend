@@ -4,6 +4,9 @@ import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Meeting, MeetingDocument } from './entities/meeting.entity';
+import { AiResult, AiResultDocument } from 'src/ai-results/entities/ai-result.entity';
+import { Attendee, AttendeeDocument } from 'src/attendees/entities/attendee.entity';
+import { ActionItem, ActionItemDocument } from 'src/action-items/entities/action-item.entity';
 
 export type PaginatedMeetings = {
   data: Meeting[];
@@ -14,7 +17,12 @@ export type PaginatedMeetings = {
 
 @Injectable()
 export class MeetingsService {
-  constructor(@InjectModel(Meeting.name) private meetingModel: Model<MeetingDocument>) {}
+  constructor(
+    @InjectModel(Meeting.name) private meetingModel: Model<MeetingDocument>,
+    @InjectModel(ActionItem.name) private actionItemModel: Model<ActionItemDocument>,
+    @InjectModel(Attendee.name) private attendeeModel: Model<AttendeeDocument>,
+    @InjectModel(AiResult.name) private aiResultModel: Model<AiResultDocument>,
+  ) {}
 
   async create(dto: CreateMeetingDto) {
     return this.meetingModel.create(dto);
@@ -51,6 +59,13 @@ export class MeetingsService {
   async remove(id: string) {
     const meeting = await this.meetingModel.findByIdAndDelete(id);
     if (!meeting) throw new NotFoundException(`Meeting ${id} not found`);
+
+    await Promise.all([
+      this.actionItemModel.deleteMany({ meetingId: id }),
+      this.attendeeModel.deleteMany({ meetingId: id }),
+      this.aiResultModel.deleteMany({ meetingId: id }),
+    ]);
+
     return meeting;
   }
 
