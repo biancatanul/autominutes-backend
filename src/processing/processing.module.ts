@@ -6,6 +6,7 @@ import { LlmModule } from '../llm/llm.module';
 import { Meeting, MeetingSchema } from '../meetings/entities/meeting.entity';
 import { AiResult, AiResultSchema } from '../ai-results/entities/ai-result.entity';
 import { ActionItem, ActionItemSchema } from '../action-items/entities/action-item.entity';
+import { Attendee, AttendeeSchema } from '../attendees/entities/attendee.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ActionItem, ActionItemSchema } from '../action-items/entities/action-it
       { name: Meeting.name, schema: MeetingSchema },
       { name: AiResult.name, schema: AiResultSchema },
       { name: ActionItem.name, schema: ActionItemSchema },
+      { name: Attendee.name, schema: AttendeeSchema },
     ]),
   ],
   controllers: [ProcessingController],

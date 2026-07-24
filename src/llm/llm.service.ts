@@ -23,7 +23,10 @@ export class LlmService {
       '(e.g. "2026-07-16" or "July 16"), output it as YYYY-MM-DD. If the transcript ' +
       'uses a relative or relative day reference (e.g. "wednesday", "next friday", ' +
       '"in 3 days"), output that phrase exactly as said, in lowercase, do not calculate ' +
-      'or resolve it yourself. If no deadline is mentioned, use null.';
+      'or resolve it yourself. If no deadline is mentioned, use null.' +
+      'For the attendees field: list the full name of every distinct person who ' +
+      'spoke or was addressed in the transcript, exactly as it appears (e.g. "John Smith"), ' +
+      'with no duplicates and no titles/roles attached. If no names are identifiable, use [].';
 
     let response: Response;
     try {
@@ -78,6 +81,11 @@ export class LlmService {
             deadline: a?.deadline ?? undefined,
             status: a?.status ?? 'OPEN',
           }))
+        : [],
+      attendees: Array.isArray(parsed.attendees)
+        ? parsed.attendees.filter(
+            (a: unknown): a is string => typeof a === 'string' && a.trim() !== '',
+          )
         : [],
     };
   }

@@ -10,6 +10,7 @@ import {
   ActionItemDocument,
   ActionItemStatus,
 } from '../action-items/entities/action-item.entity';
+import { Attendee, AttendeeDocument } from '../attendees/entities/attendee.entity';
 
 @Injectable()
 export class ProcessingService {
@@ -19,6 +20,7 @@ export class ProcessingService {
     @InjectModel(Meeting.name) private readonly meetingModel: Model<MeetingDocument>,
     @InjectModel(AiResult.name) private readonly aiResultModel: Model<AiResultDocument>,
     @InjectModel(ActionItem.name) private readonly actionItemModel: Model<ActionItemDocument>,
+    @InjectModel(Attendee.name) private readonly attendeeModel: Model<AttendeeDocument>,
     private readonly llmService: LlmService,
   ) {}
 
@@ -34,7 +36,6 @@ export class ProcessingService {
 
     try {
       const ai = await this.llmService.generateMeetingInsights(meeting.transcript);
-
       const objId = new Types.ObjectId(meetingId);
 
       const last = await this.aiResultModel
@@ -104,6 +105,8 @@ export class ProcessingService {
 
       const createdItems = toInsert.length ? await this.actionItemModel.insertMany(toInsert) : [];
 
+      const createdAttendees = await this.createMissingAttendees(objId, ai.attendees);
+
       meeting.processingStatus = ProcessingStatus.COMPLETED;
       await meeting.save();
 
@@ -112,6 +115,7 @@ export class ProcessingService {
         status: meeting.processingStatus,
         aiResult,
         actionItems: [...updated, ...createdItems],
+        attendees: createdAttendees,
       };
     } catch (err) {
       meeting.processingStatus = ProcessingStatus.FAILED;
@@ -119,6 +123,27 @@ export class ProcessingService {
       this.logger.error(`Processing failed for meeting ${meetingId}`, err as Error);
       throw err;
     }
+  }
+
+  private async createMissingAttendees(
+    meetingId: Types.ObjectId,
+    names: string[],
+  ): Promise<AttendeeDocument[]> {
+    const existing = await this.attendeeModel.find({ meetingId }).exec();
+    const existingNames = new Set(existing.map((a) => a.name.trim().toLowerCase()));
+
+    const toCreate: string[] = [];
+    for (const raw of names) {
+      const name = raw.trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (existingNames.has(key)) continue;
+      existingNames.add(key);
+      toCreate.push(name);
+    }
+
+    if (toCreate.length === 0) return [];
+    return this.attendeeModel.insertMany(toCreate.map((name) => ({ name, meetingId })));
   }
 
   private static readonly STOPWORDS = new Set([

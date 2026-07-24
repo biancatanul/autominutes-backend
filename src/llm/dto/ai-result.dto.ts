@@ -9,4 +9,5 @@ export class AiResultDto {
   summary: string;
   discussionPoints: string[];
   actionItems: AiActionItemDto[];
+  attendees: string[];
 }
