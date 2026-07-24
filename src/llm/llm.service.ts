@@ -16,18 +16,18 @@ export class LlmService {
   async generateMeetingInsights(transcript: string): Promise<AiResultDto> {
     const systemPrompt =
       'You analyze meeting transcripts. Respond ONLY with a JSON object of this shape: ' +
-      '{ "summary": string, "discussionPoints": string[], "actionItems": ' +
+      '{ "summary": string, "attendees": string[], "discussionPoints": string[], "actionItems": ' +
       '[{ "description": string, "assignee": string|null, "deadline": string|null, ' +
       '"status": "OPEN"|"IN_PROGRESS"|"DONE" }] }. No text outside the JSON. ' +
+      'The attendees field is required in every response, even for long transcripts with many ' +
+      'action items: list the full name of every distinct person who spoke or was addressed, ' +
+      'exactly as it appears (e.g. "John Smith"), with no duplicates and no titles/roles attached. ' +
+      'If no names are identifiable, use []. ' +
       'For the deadline field: if the transcript states an explicit calendar date ' +
       '(e.g. "2026-07-16" or "July 16"), output it as YYYY-MM-DD. If the transcript ' +
       'uses a relative or relative day reference (e.g. "wednesday", "next friday", ' +
       '"in 3 days"), output that phrase exactly as said, in lowercase, do not calculate ' +
-      'or resolve it yourself. If no deadline is mentioned, use null.' +
-      'For the attendees field: list the full name of every distinct person who ' +
-      'spoke or was addressed in the transcript, exactly as it appears (e.g. "John Smith"), ' +
-      'with no duplicates and no titles/roles attached. If no names are identifiable, use [].';
-
+      'or resolve it yourself. If no deadline is mentioned, use null.';
     let response: Response;
     try {
       response = await fetch(`${this.baseUrl}/api/chat`, {
