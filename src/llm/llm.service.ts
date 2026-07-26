@@ -17,8 +17,16 @@ export class LlmService {
     const systemPrompt =
       'You analyze meeting transcripts. Respond ONLY with a JSON object of this shape: ' +
       '{ "summary": string, "attendees": string[], "discussionPoints": string[], "actionItems": ' +
-      '[{ "description": string, "assignee": string|null, "deadline": string|null, ' +
+      '[{ "description": string, "details": string|null, "assignee": string|null, "deadline": string|null, ' +
       '"status": "OPEN"|"IN_PROGRESS"|"DONE" }] }. No text outside the JSON. ' +
+      'The "description" field is a short title (under 10 words). The "details" field is 1-2 full ' +
+      'sentences giving the fuller context of the task as discussed in the transcript, so someone ' +
+      'returning to this item later understands what it involves without rereading the transcript. ' +
+      'If there is nothing beyond the description worth adding, use null. ' +
+      'For example, if the transcript says "Bob will finish the API integration by Friday, it needs ' +
+      'to support the new payment gateway," the description should be "Finish API integration" and ' +
+      'the details should be "Needs to support the new payment gateway." Only use null when the ' +
+      'transcript gives no information beyond what is already in the description. ' +
       'The attendees field is required in every response, even for long transcripts with many ' +
       'action items: list the full name of every distinct person who spoke or was addressed, ' +
       'exactly as it appears (e.g. "John Smith"), with no duplicates and no titles/roles attached. ' +
@@ -27,7 +35,11 @@ export class LlmService {
       '(e.g. "2026-07-16" or "July 16"), output it as YYYY-MM-DD. If the transcript ' +
       'uses a relative or relative day reference (e.g. "wednesday", "next friday", ' +
       '"in 3 days"), output that phrase exactly as said, in lowercase, do not calculate ' +
-      'or resolve it yourself. If no deadline is mentioned, use null.';
+      'or resolve it yourself. A deadline is often stated in a separate sentence from the task ' +
+      'itself, for example "I can run the load tests. I will report results the following Monday" ' +
+      'means the deadline for running the load tests is "the following monday", do not skip the ' +
+      'deadline just because it is not in the same sentence as the task. If no deadline is ' +
+      'mentioned anywhere for a task, use null.';
     let response: Response;
     try {
       response = await fetch(`${this.baseUrl}/api/chat`, {
@@ -77,6 +89,8 @@ export class LlmService {
       actionItems: Array.isArray(parsed.actionItems)
         ? parsed.actionItems.map((a: any) => ({
             description: String(a?.description ?? ''),
+            details:
+              typeof a?.details === 'string' && a.details.trim() !== '' ? a.details : undefined,
             assignee: a?.assignee ?? undefined,
             deadline: a?.deadline ?? undefined,
             status: a?.status ?? 'OPEN',

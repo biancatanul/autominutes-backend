@@ -16,7 +16,10 @@ export class ActionItem {
   description: string;
 
   @Prop()
-  assignee?: string; // just a string for now, could become a reference to an attendee
+  details?: string;
+
+  @Prop()
+  assignee?: string;
 
   @Prop()
   deadline?: Date;

@@ -82,6 +82,10 @@ export class ProcessingService {
         if (best) {
           claimed.add(String(best.item._id));
           let changed = false;
+          if (!best.item.details && raw.details) {
+            best.item.details = raw.details;
+            changed = true;
+          }
           if (!best.item.assignee && raw.assignee) {
             best.item.assignee = raw.assignee;
             changed = true;
@@ -95,6 +99,7 @@ export class ProcessingService {
         } else {
           toInsert.push({
             description: raw.description,
+            details: raw.details,
             assignee: raw.assignee,
             deadline,
             status: this.mapStatus(raw.status),
@@ -130,20 +135,42 @@ export class ProcessingService {
     names: string[],
   ): Promise<AttendeeDocument[]> {
     const existing = await this.attendeeModel.find({ meetingId }).exec();
-    const existingNames = new Set(existing.map((a) => a.name.trim().toLowerCase()));
+    const existingByName = new Map(existing.map((a) => [a.name.trim().toLowerCase(), a]));
 
-    const toCreate: string[] = [];
+    const toCreate: { name: string; role?: string }[] = [];
+    const seen = new Set(existingByName.keys());
+
     for (const raw of names) {
-      const name = raw.trim();
+      const { name, role } = this.splitNameAndRole(raw);
       if (!name) continue;
+
       const key = name.toLowerCase();
-      if (existingNames.has(key)) continue;
-      existingNames.add(key);
-      toCreate.push(name);
+      const match = existingByName.get(key);
+
+      if (match) {
+        if (!match.role && role) {
+          match.role = role;
+          await match.save();
+        }
+        continue;
+      }
+
+      if (seen.has(key)) continue;
+      seen.add(key);
+      toCreate.push({ name, role });
     }
 
     if (toCreate.length === 0) return [];
-    return this.attendeeModel.insertMany(toCreate.map((name) => ({ name, meetingId })));
+    return this.attendeeModel.insertMany(toCreate.map((a) => ({ ...a, meetingId })));
+  }
+
+  private splitNameAndRole(raw: string): { name: string; role?: string } {
+    const trimmed = raw.trim();
+    const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+    if (match) {
+      return { name: match[1].trim(), role: match[2].trim() };
+    }
+    return { name: trimmed };
   }
 
   private static readonly STOPWORDS = new Set([

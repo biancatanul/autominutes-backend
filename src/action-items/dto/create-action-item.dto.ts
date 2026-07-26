@@ -8,6 +8,10 @@ export class CreateActionItemDto {
 
   @IsString()
   @IsOptional()
+  details?: string;
+
+  @IsString()
+  @IsOptional()
   assignee?: string;
 
   @IsDateString()

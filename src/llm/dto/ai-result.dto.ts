@@ -1,5 +1,6 @@
 export class AiActionItemDto {
   description: string;
+  details?: string;
   assignee?: string;
   deadline?: string;
   status?: string;
