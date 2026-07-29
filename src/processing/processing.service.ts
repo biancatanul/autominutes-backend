@@ -51,7 +51,7 @@ export class ProcessingService {
         version,
       });
 
-      const MATCH_THRESHOLD = 0.6;
+      const MATCH_THRESHOLD = 0.5;
 
       const existingItems = await this.actionItemModel.find({ meetingId: objId }).exec();
       const existingEntries = existingItems.map((item) => ({
@@ -166,10 +166,17 @@ export class ProcessingService {
 
   private splitNameAndRole(raw: string): { name: string; role?: string } {
     const trimmed = raw.trim();
-    const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
-    if (match) {
-      return { name: match[1].trim(), role: match[2].trim() };
+
+    const parenMatch = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+    if (parenMatch) {
+      return { name: parenMatch[1].trim(), role: parenMatch[2].trim() };
     }
+
+    const colonMatch = trimmed.match(/^(.+?)\s*:\s*(.+)$/);
+    if (colonMatch) {
+      return { name: colonMatch[1].trim(), role: colonMatch[2].trim() };
+    }
+
     return { name: trimmed };
   }
 
