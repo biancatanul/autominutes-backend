@@ -32,16 +32,33 @@ export class MeetingsService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.meetingModel.find().skip(skip).limit(limit),
+      this.meetingModel.find().skip(skip).limit(limit).lean(),
       this.meetingModel.countDocuments(),
     ]);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-    };
+    const meetingIds = data.map((m) => m._id);
+
+    const [attendeeCounts, actionItemCounts] = await Promise.all([
+      this.attendeeModel.aggregate([
+        { $match: { meetingId: { $in: meetingIds } } },
+        { $group: { _id: '$meetingId', count: { $sum: 1 } } },
+      ]),
+      this.actionItemModel.aggregate([
+        { $match: { meetingId: { $in: meetingIds } } },
+        { $group: { _id: '$meetingId', count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const attendeeMap = new Map(attendeeCounts.map((a) => [a._id.toString(), a.count]));
+    const actionItemMap = new Map(actionItemCounts.map((a) => [a._id.toString(), a.count]));
+
+    const enriched = data.map((m) => ({
+      ...m,
+      attendeeCount: attendeeMap.get(m._id.toString()) ?? 0,
+      actionItemCount: actionItemMap.get(m._id.toString()) ?? 0,
+    }));
+
+    return { data: enriched, total, page, limit };
   }
 
   async findOne(id: string) {
