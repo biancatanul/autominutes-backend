@@ -44,6 +44,13 @@ export class LlmService {
       'means the deadline for running the load tests is "the following monday", do not skip the ' +
       'deadline just because it is not in the same sentence as the task. If no deadline is ' +
       'mentioned anywhere for a task, use null. ' +
+      'Deadlines are sometimes settled through a back-and-forth exchange rather than stated once: ' +
+      'for example, if one person says "I can have it done by next Thursday," and another person ' +
+      'then asks to confirm, "that\'s the 6th?", and the first person confirms, "correct, the 6th," ' +
+      'then the deadline for that task is the confirmed explicit date, output as YYYY-MM-DD ' +
+      '(e.g. "2026-08-06"), not left as null and not the original relative phrase. Always use the ' +
+      'most specific, most recently confirmed version of a deadline, even if reaching it takes ' +
+      'several exchanges between different speakers. ' +
       'Before responding, re-read the transcript once more and verify that every task discussed, ' +
       'every deadline mentioned, and every distinct topic covered has been included in your response. ' +
       'Do not omit an action item, a deadline, or a discussion point that is explicitly stated in the ' +
