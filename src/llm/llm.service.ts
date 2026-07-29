@@ -29,8 +29,12 @@ export class LlmService {
       'transcript gives no information beyond what is already in the description. ' +
       'The attendees field is required in every response, even for long transcripts with many ' +
       'action items: list the full name of every distinct person who spoke or was addressed, ' +
-      'exactly as it appears (e.g. "John Smith"), with no duplicates and no titles/roles attached. ' +
-      'If no names are identifiable, use []. ' +
+      'exactly as it appears (e.g. "John Smith"), with no duplicates. If the transcript states ' +
+      "that person's role or title, include it in parentheses after the name, for example " +
+      '"Maria (Program Manager)" or "Jordan (Backend Lead)". If no role is stated for a person, ' +
+      'list just their name with no parentheses, for example "John Smith". Always use this ' +
+      'parenthetical format for roles, never a colon or other separator. If no names are ' +
+      'identifiable, use []. ' +
       'For the deadline field: if the transcript states an explicit calendar date ' +
       '(e.g. "2026-07-16" or "July 16"), output it as YYYY-MM-DD. If the transcript ' +
       'uses a relative or relative day reference (e.g. "wednesday", "next friday", ' +
@@ -39,7 +43,11 @@ export class LlmService {
       'itself, for example "I can run the load tests. I will report results the following Monday" ' +
       'means the deadline for running the load tests is "the following monday", do not skip the ' +
       'deadline just because it is not in the same sentence as the task. If no deadline is ' +
-      'mentioned anywhere for a task, use null.';
+      'mentioned anywhere for a task, use null. ' +
+      'Before responding, re-read the transcript once more and verify that every task discussed, ' +
+      'every deadline mentioned, and every distinct topic covered has been included in your response. ' +
+      'Do not omit an action item, a deadline, or a discussion point that is explicitly stated in the ' +
+      'transcript, even if the transcript is long or covers many topics.';
     let response: Response;
     try {
       response = await fetch(`${this.baseUrl}/api/chat`, {
@@ -49,6 +57,7 @@ export class LlmService {
           model: this.model,
           stream: false,
           format: 'json',
+          options: { temperature: 0.2 },
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `Transcript:\n${transcript}` },
