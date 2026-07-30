@@ -57,7 +57,7 @@ export class TranscriptsService {
     const doc = await this.model.create({ meetingId, version, text, source: 'paste' });
     meeting.transcript = text;
     await meeting.save();
-    return doc;
+    return meeting;
   }
 
   listVersions(meetingId: string) {
