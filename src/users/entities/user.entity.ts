@@ -13,6 +13,9 @@ export class User {
 
   @Prop({ required: true, select: false }) // does not return the password field by default when querying the user
   password: string;
+
+  @Prop({ default: 'user' })
+  avatarIcon: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

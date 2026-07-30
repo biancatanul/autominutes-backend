@@ -1,8 +1,10 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { UsersService } from '../users/users.service';
@@ -29,6 +31,27 @@ export class AuthController {
   @Get('me')
   async me(@CurrentUser() currentUser: { userId: string; email: string }) {
     const user = await this.usersService.findById(currentUser.userId);
-    return { id: user.id, name: user.name, email: user.email };
+    return { id: user.id, name: user.name, email: user.email, avatarIcon: user.avatarIcon };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  async updateMe(@CurrentUser() currentUser: { userId: string }, @Body() dto: UpdateProfileDto) {
+    const user = await this.usersService.updateProfile(currentUser.userId, dto);
+    return { id: user.id, name: user.name, email: user.email, avatarIcon: user.avatarIcon };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/password')
+  async changePassword(
+    @CurrentUser() currentUser: { userId: string },
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.usersService.updatePassword(
+      currentUser.userId,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+    return { message: 'Password updated successfully' };
   }
 }
