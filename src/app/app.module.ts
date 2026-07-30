@@ -10,6 +10,7 @@ import { AiResultsModule } from '../ai-results/ai-results.module';
 import { ProcessingModule } from '../processing/processing.module';
 import { UsersModule } from '../users/users.module';
 import { AuthModule } from '../auth/auth.module';
+import { TranscriptsModule } from '../transcripts/transcripts.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuthModule } from '../auth/auth.module';
     ProcessingModule,
     UsersModule,
     AuthModule,
+    TranscriptsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

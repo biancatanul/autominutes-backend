@@ -20,7 +20,7 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["jest", "node"],
+    "types": ["jest", "node", "multer"],
     "ignoreDeprecations": "5.0",
     "baseUrl": "./",
     "paths": {

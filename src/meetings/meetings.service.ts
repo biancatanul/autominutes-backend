@@ -7,6 +7,10 @@ import { Meeting, MeetingDocument } from './entities/meeting.entity';
 import { AiResult, AiResultDocument } from 'src/ai-results/entities/ai-result.entity';
 import { Attendee, AttendeeDocument } from 'src/attendees/entities/attendee.entity';
 import { ActionItem, ActionItemDocument } from 'src/action-items/entities/action-item.entity';
+import {
+  TranscriptVersion,
+  TranscriptVersionDocument,
+} from 'src/transcripts/entities/transcript-version.entity';
 
 export type PaginatedMeetings = {
   data: Meeting[];
@@ -22,6 +26,8 @@ export class MeetingsService {
     @InjectModel(ActionItem.name) private actionItemModel: Model<ActionItemDocument>,
     @InjectModel(Attendee.name) private attendeeModel: Model<AttendeeDocument>,
     @InjectModel(AiResult.name) private aiResultModel: Model<AiResultDocument>,
+    @InjectModel(TranscriptVersion.name)
+    private transcriptVersionModel: Model<TranscriptVersionDocument>,
   ) {}
 
   async create(dto: CreateMeetingDto) {
@@ -81,21 +87,9 @@ export class MeetingsService {
       this.actionItemModel.deleteMany({ meetingId: id }),
       this.attendeeModel.deleteMany({ meetingId: id }),
       this.aiResultModel.deleteMany({ meetingId: id }),
+      this.transcriptVersionModel.deleteMany({ meetingId: id }),
     ]);
 
     return meeting;
-  }
-
-  async setTranscript(id: string, text: string): Promise<Meeting> {
-    const meeting = await this.meetingModel
-      .findByIdAndUpdate(id, { transcript: text }, { new: true })
-      .exec();
-    if (!meeting) throw new NotFoundException(`Meeting ${id} not found`);
-    return meeting;
-  }
-
-  async getTranscript(id: string): Promise<{ transcript: string | null }> {
-    const meeting = await this.findOne(id);
-    return { transcript: meeting.transcript ?? null };
   }
 }

@@ -6,6 +6,10 @@ import { ActionItem, ActionItemSchema } from '../action-items/entities/action-it
 import { Attendee, AttendeeSchema } from '../attendees/entities/attendee.entity';
 import { AiResult, AiResultSchema } from '../ai-results/entities/ai-result.entity';
 import { MongooseModule } from '@nestjs/mongoose';
+import {
+  TranscriptVersion,
+  TranscriptVersionSchema,
+} from 'src/transcripts/entities/transcript-version.entity';
 
 @Module({
   imports: [
@@ -14,6 +18,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       { name: ActionItem.name, schema: ActionItemSchema },
       { name: Attendee.name, schema: AttendeeSchema },
       { name: AiResult.name, schema: AiResultSchema },
+      { name: TranscriptVersion.name, schema: TranscriptVersionSchema },
     ]),
   ],
   controllers: [MeetingsController],
